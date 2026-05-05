@@ -1,0 +1,116 @@
+import React, { useState, useEffect, useContext } from 'react';
+import { Link } from 'react-router-dom';
+import api from '../api';
+import { AuthContext } from '../context/AuthContext';
+
+const Dashboard = () => {
+  const [tasks, setTasks] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [filter, setFilter] = useState('ALL');
+  const { user } = useContext(AuthContext);
+
+  useEffect(() => {
+    fetchTasks();
+  }, []);
+
+  const fetchTasks = async () => {
+    try {
+      const response = await api.get('/tasks');
+      setTasks(response.data);
+    } catch (err) {
+      console.error('Failed to fetch tasks', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleStatusChange = async (taskId, newStatus) => {
+    try {
+      await api.put(`/tasks/${taskId}`, { status: newStatus });
+      fetchTasks(); // refresh to show updated status
+    } catch (err) {
+      alert('Failed to update task status');
+    }
+  };
+
+  if (loading) return <div style={{ textAlign: 'center', padding: '40px' }}>Loading...</div>;
+
+  const pending = tasks.filter(t => t.status === 'PENDING').length;
+  const inProgress = tasks.filter(t => t.status === 'IN_PROGRESS').length;
+  const completed = tasks.filter(t => t.status === 'COMPLETED').length;
+  const overdue = tasks.filter(t => t.status === 'OVERDUE' || (t.dueDate && new Date(t.dueDate) < new Date() && t.status !== 'COMPLETED')).length;
+
+  return (
+    <div>
+      <div className="dashboard-header">
+        <h1>Dashboard Overview</h1>
+      </div>
+
+      <div className="dashboard-stats">
+        <div className="glass-card stat-card" onClick={() => setFilter('ALL')} style={{ cursor: 'pointer', borderTopColor: filter === 'ALL' ? 'var(--primary-color)' : 'var(--border-color)' }}>
+          <div className="stat-value">{tasks.length}</div>
+          <div className="stat-label">Total Tasks</div>
+        </div>
+        <div className="glass-card stat-card" onClick={() => setFilter('IN_PROGRESS')} style={{ cursor: 'pointer', borderTopColor: filter === 'IN_PROGRESS' ? 'var(--primary-color)' : 'var(--border-color)' }}>
+          <div className="stat-value">{inProgress}</div>
+          <div className="stat-label">In Progress</div>
+        </div>
+        <div className="glass-card stat-card" onClick={() => setFilter('COMPLETED')} style={{ cursor: 'pointer', borderTopColor: filter === 'COMPLETED' ? 'var(--success-color)' : 'var(--border-color)' }}>
+          <div className="stat-value">{completed}</div>
+          <div className="stat-label">Completed</div>
+        </div>
+        <div className="glass-card stat-card" onClick={() => setFilter('OVERDUE')} style={{ cursor: 'pointer', borderTopColor: filter === 'OVERDUE' ? 'var(--danger-color)' : 'var(--border-color)' }}>
+          <div className="stat-value">{overdue}</div>
+          <div className="stat-label">Overdue</div>
+        </div>
+      </div>
+
+      <h2 style={{ marginBottom: '24px' }}>
+        {filter === 'ALL' ? 'Assigned & Recent Tasks' : `${filter.replace('_', ' ')} Tasks`}
+      </h2>
+      <div style={{ display: 'grid', gap: '16px' }}>
+        {tasks.length === 0 ? (
+          <p style={{ color: 'var(--text-secondary)' }}>No tasks found.</p>
+        ) : (
+          tasks.filter(t => {
+            if (filter === 'ALL') return true;
+            if (filter === 'OVERDUE') return t.status === 'OVERDUE' || (t.dueDate && new Date(t.dueDate) < new Date() && t.status !== 'COMPLETED');
+            return t.status === filter;
+          }).map(task => (
+            <div key={task.id} className="glass-card" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div>
+                <h3 style={{ marginBottom: '4px' }}>{task.title}</h3>
+                <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
+                  Project: {task.projectId ? <Link to={`/projects/${task.projectId}`}>{task.project?.name}</Link> : 'N/A'} • Priority: {task.priority}
+                  {task.dueDate && ` • Due: ${new Date(task.dueDate).toLocaleDateString()}`}
+                </p>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+                {/* If assigned to the user or Admin, show dropdown, else show badge */}
+                {(task.assigneeId === user.id || user.role === 'ADMIN') ? (
+                  <select 
+                    className="form-control" 
+                    style={{ width: 'auto', padding: '5px' }}
+                    value={task.status}
+                    onChange={(e) => handleStatusChange(task.id, e.target.value)}
+                  >
+                    <option value="PENDING">Pending</option>
+                    <option value="IN_PROGRESS">In Progress</option>
+                    <option value="COMPLETED">Completed</option>
+                    <option value="OVERDUE">Overdue</option>
+                  </select>
+                ) : (
+                  <span className={`badge badge-${task.status.toLowerCase().replace('_', '-')}`}>
+                    {task.status.replace('_', ' ')}
+                  </span>
+                )}
+              </div>
+            </div>
+          ))
+        )}
+      </div>
+    </div>
+  );
+};
+
+export default Dashboard;

@@ -29,8 +29,8 @@ COPY backend/ ./
 # Generate Prisma client
 RUN npx prisma generate
 
-# Copy the built frontend static files from the previous stage to backend/public
-COPY --from=frontend-builder /app/frontend/dist /app/backend/public
+# Copy the built frontend static files from the previous stage to backend/dist
+COPY --from=frontend-builder /app/frontend/dist /app/backend/dist
 
 # Expose port (default for Express)
 EXPOSE 4000

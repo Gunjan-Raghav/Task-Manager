@@ -29,10 +29,11 @@ app.get('/api/health', (req, res) => {
 });
 
 // Serve static frontend in production
-app.use(express.static(path.join(__dirname, '../public')));
+const frontendPath = path.join(__dirname, '../dist');
+app.use(express.static(frontendPath));
 
 app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, '../public', 'index.html'));
+  res.sendFile(path.join(frontendPath, 'index.html'));
 });
 
 const PORT = process.env.PORT || 4000;

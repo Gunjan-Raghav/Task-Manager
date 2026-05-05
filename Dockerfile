@@ -1,7 +1,7 @@
 # ==========================================
 # 1. Build the Frontend
 # ==========================================
-FROM node:18-alpine AS frontend-builder
+FROM node:20-alpine AS frontend-builder
 WORKDIR /app/frontend
 # Copy package files and install dependencies
 COPY frontend/package*.json ./
@@ -13,7 +13,7 @@ RUN npm run build
 # ==========================================
 # 2. Build and run the Backend
 # ==========================================
-FROM node:18-alpine
+FROM node:20-alpine
 WORKDIR /app/backend
 # Copy package files and install backend dependencies
 COPY backend/package*.json ./

@@ -14,7 +14,7 @@ const prisma = new PrismaClient();
 app.use(cors());
 app.use(express.json());
 
-// Serve static files from the built frontend before API routes
+// Serve static files from the built frontend before API routes (as suggested by Railway PR)
 app.use(express.static(path.join(__dirname, '../../frontend/dist')));
 
 // Routes

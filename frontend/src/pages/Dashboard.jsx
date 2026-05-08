@@ -35,10 +35,10 @@ const Dashboard = () => {
 
   if (loading) return <div style={{ textAlign: 'center', padding: '40px' }}>Loading...</div>;
 
-  const pending = tasks.filter(t => t.status === 'PENDING').length;
+  const todo = tasks.filter(t => t.status === 'PENDING').length;
   const inProgress = tasks.filter(t => t.status === 'IN_PROGRESS').length;
-  const completed = tasks.filter(t => t.status === 'COMPLETED').length;
-  const overdue = tasks.filter(t => t.status === 'OVERDUE' || (t.dueDate && new Date(t.dueDate) < new Date() && t.status !== 'COMPLETED')).length;
+  const done = tasks.filter(t => t.status === 'DONE' || t.status === 'COMPLETED').length;
+  const overdue = tasks.filter(t => t.status === 'OVERDUE' || (t.dueDate && new Date(t.dueDate) < new Date() && t.status !== 'DONE' && t.status !== 'COMPLETED')).length;
 
   return (
     <div>
@@ -51,13 +51,17 @@ const Dashboard = () => {
           <div className="stat-value">{tasks.length}</div>
           <div className="stat-label">Total Tasks</div>
         </div>
+        <div className="glass-card stat-card" onClick={() => setFilter('PENDING')} style={{ cursor: 'pointer', borderTopColor: filter === 'PENDING' ? 'var(--primary-color)' : 'var(--border-color)' }}>
+          <div className="stat-value">{todo}</div>
+          <div className="stat-label">Pending</div>
+        </div>
         <div className="glass-card stat-card" onClick={() => setFilter('IN_PROGRESS')} style={{ cursor: 'pointer', borderTopColor: filter === 'IN_PROGRESS' ? 'var(--primary-color)' : 'var(--border-color)' }}>
           <div className="stat-value">{inProgress}</div>
           <div className="stat-label">In Progress</div>
         </div>
-        <div className="glass-card stat-card" onClick={() => setFilter('COMPLETED')} style={{ cursor: 'pointer', borderTopColor: filter === 'COMPLETED' ? 'var(--success-color)' : 'var(--border-color)' }}>
-          <div className="stat-value">{completed}</div>
-          <div className="stat-label">Completed</div>
+        <div className="glass-card stat-card" onClick={() => setFilter('DONE')} style={{ cursor: 'pointer', borderTopColor: filter === 'DONE' ? 'var(--success-color)' : 'var(--border-color)' }}>
+          <div className="stat-value">{done}</div>
+          <div className="stat-label">Done</div>
         </div>
         <div className="glass-card stat-card" onClick={() => setFilter('OVERDUE')} style={{ cursor: 'pointer', borderTopColor: filter === 'OVERDUE' ? 'var(--danger-color)' : 'var(--border-color)' }}>
           <div className="stat-value">{overdue}</div>
@@ -74,7 +78,9 @@ const Dashboard = () => {
         ) : (
           tasks.filter(t => {
             if (filter === 'ALL') return true;
-            if (filter === 'OVERDUE') return t.status === 'OVERDUE' || (t.dueDate && new Date(t.dueDate) < new Date() && t.status !== 'COMPLETED');
+            if (filter === 'OVERDUE') return t.status === 'OVERDUE' || (t.dueDate && new Date(t.dueDate) < new Date() && t.status !== 'DONE' && t.status !== 'COMPLETED');
+            if (filter === 'PENDING') return t.status === 'PENDING';
+            if (filter === 'DONE') return t.status === 'DONE' || t.status === 'COMPLETED';
             return t.status === filter;
           }).map(task => (
             <div key={task.id} className="glass-card" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -96,8 +102,7 @@ const Dashboard = () => {
                   >
                     <option value="PENDING">Pending</option>
                     <option value="IN_PROGRESS">In Progress</option>
-                    <option value="COMPLETED">Completed</option>
-                    <option value="OVERDUE">Overdue</option>
+                    <option value="DONE">Done</option>
                   </select>
                 ) : (
                   <span className={`badge badge-${task.status.toLowerCase().replace('_', '-')}`}>

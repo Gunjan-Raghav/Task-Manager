@@ -15,7 +15,7 @@ const Navbar = () => {
     <nav className="navbar">
       <Link to="/" className="nav-brand">TaskManager</Link>
       <div className="nav-links">
-        {user?.role === 'ADMIN' && <Link to="/admin-dashboard">Global Dashboard</Link>}
+        <Link to="/dashboard">Dashboard</Link>
         <Link to="/projects">Projects</Link>
         {user?.role === 'ADMIN' && <span className="badge badge-pending">Admin</span>}
         <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginLeft: '16px' }}>

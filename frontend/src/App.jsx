@@ -6,6 +6,7 @@ import Login from './pages/Login';
 import Signup from './pages/Signup';
 import ProjectList from './pages/ProjectList';
 import ProjectDetail from './pages/ProjectDetail';
+import Dashboard from './pages/Dashboard';
 import AdminDashboard from './pages/AdminDashboard';
 
 const ProtectedRoute = () => {
@@ -25,7 +26,8 @@ const AppRoutes = () => {
           <Route path="/signup" element={!user ? <Signup /> : <Navigate to="/" replace />} />
           
           <Route element={<ProtectedRoute />}>
-            <Route path="/" element={<Navigate to="/projects" replace />} />
+            <Route path="/" element={<Navigate to="/dashboard" replace />} />
+            <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/projects" element={<ProjectList />} />
             <Route path="/projects/:id" element={<ProjectDetail />} />
             <Route path="/admin-dashboard" element={<AdminDashboard />} />

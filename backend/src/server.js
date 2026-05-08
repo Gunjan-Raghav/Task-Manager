@@ -39,6 +39,15 @@ app.get('*', (req, res) => {
 });
 
 const PORT = process.env.PORT || 4000;
+// Global Error Handler
+app.use((err, req, res, next) => {
+  console.error('--- SERVER CRASH DETECTED ---');
+  console.error('Error Path:', req.path);
+  console.error('Error Stack:', err.stack);
+  console.error('-----------------------------');
+  res.status(500).json({ error: 'Internal Server Error', message: err.message });
+});
+
 app.listen(PORT, () => {
   console.log(`Server listening on port ${PORT}`);
 });

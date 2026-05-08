@@ -4,6 +4,7 @@ const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
 const prisma = require('../prismaClient');
 const { signupSchema, loginSchema, forgotPasswordSchema, resetPasswordSchema, validate } = require('../utils/validation');
+const { sendResetEmail } = require('../emailService');
 
 const router = express.Router();
 
@@ -97,14 +98,10 @@ router.post('/forgot-password', validate(forgotPasswordSchema), async (req, res)
       data: { resetToken: token, resetTokenExpiry: expiry }
     });
 
-    // In a real app, send email here. For now, log to terminal.
-    console.log('------------------------------------------');
-    console.log(`PASSWORD RESET REQUEST for ${email}`);
-    console.log(`Token: ${token}`);
-    console.log(`Link: http://localhost:5173/reset-password?token=${token}`);
-    console.log('------------------------------------------');
+    // Send the actual email
+    await sendResetEmail(email, token);
 
-    res.json({ message: 'Password reset link generated. Check server logs (simulating email).' });
+    res.json({ message: 'Password reset link sent to your email.' });
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: 'Internal server error' });

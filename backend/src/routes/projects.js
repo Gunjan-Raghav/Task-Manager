@@ -43,7 +43,10 @@ router.get('/', isMember, async (req, res) => {
     let projects;
     if (req.user.role === 'ADMIN') {
       projects = await prisma.project.findMany({
-        include: { owner: { select: { name: true, email: true } } }
+        include: { 
+          owner: { select: { name: true, email: true } },
+          _count: { select: { members: true, tasks: true } }
+        }
       });
     } else {
       projects = await prisma.project.findMany({
@@ -52,7 +55,10 @@ router.get('/', isMember, async (req, res) => {
             some: { userId: req.user.id }
           }
         },
-        include: { owner: { select: { name: true, email: true } } }
+        include: { 
+          owner: { select: { name: true, email: true } },
+          _count: { select: { members: true, tasks: true } }
+        }
       });
     }
     res.json(projects);

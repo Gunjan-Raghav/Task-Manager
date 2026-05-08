@@ -62,6 +62,10 @@ const ProjectList = () => {
                   {project.description || 'No description provided.'}
                 </p>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
+                  <div style={{ display: 'flex', gap: '12px' }}>
+                    <span>👥 {project._count?.members || 0} Members</span>
+                    <span>📝 {project._count?.tasks || 0} Tasks</span>
+                  </div>
                   <span>Owner: {project.owner?.name}</span>
                 </div>
               </Link>

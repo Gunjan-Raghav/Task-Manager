@@ -2,6 +2,7 @@ const express = require('express');
 const prisma = require('../prismaClient');
 const { verifyToken, isAdmin, isMember } = require('../middleware/auth');
 const { createProjectSchema, updateProjectSchema, addMemberSchema, validate } = require('../utils/validation');
+const logActivity = require('../activityLogger');
 
 const router = express.Router();
 
@@ -30,6 +31,7 @@ router.post('/', isAdmin, validate(createProjectSchema), async (req, res) => {
       }
     });
 
+    await logActivity(project.id, req.user.id, `created the project "${project.name}"`);
     res.status(201).json(project);
   } catch (error) {
     console.error(error);
@@ -45,9 +47,20 @@ router.get('/', isMember, async (req, res) => {
       projects = await prisma.project.findMany({
         include: { 
           owner: { select: { name: true, email: true } },
-          _count: { select: { members: true, tasks: true } }
+          _count: { 
+            select: { 
+              members: true, 
+              tasks: true 
+            } 
+          },
+          tasks: {
+            where: { OR: [{ status: 'DONE' }, { status: 'COMPLETED' }] },
+            select: { id: true }
+          }
         }
       });
+      // Flatten the tasks count
+      projects = projects.map(p => ({ ...p, doneTasksCount: p.tasks.length }));
     } else {
       projects = await prisma.project.findMany({
         where: {
@@ -57,9 +70,20 @@ router.get('/', isMember, async (req, res) => {
         },
         include: { 
           owner: { select: { name: true, email: true } },
-          _count: { select: { members: true, tasks: true } }
+          _count: { 
+            select: { 
+              members: true, 
+              tasks: true 
+            } 
+          },
+          tasks: {
+            where: { OR: [{ status: 'DONE' }, { status: 'COMPLETED' }] },
+            select: { id: true }
+          }
         }
       });
+      // Flatten the tasks count
+      projects = projects.map(p => ({ ...p, doneTasksCount: p.tasks.length }));
     }
     res.json(projects);
   } catch (error) {
@@ -119,6 +143,7 @@ router.post('/:id/members', isAdmin, validate(addMemberSchema), async (req, res)
       }
     });
 
+    await logActivity(projectId, req.user.id, `added ${userToAdd.name} to the team`);
     res.status(201).json(teamMember);
   } catch (error) {
     console.error(error);
@@ -132,6 +157,23 @@ router.delete('/:id', isAdmin, async (req, res) => {
     const projectId = parseInt(req.params.id);
     await prisma.project.delete({ where: { id: projectId } });
     res.status(204).send();
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Get project activity
+router.get('/:id/activities', isMember, async (req, res) => {
+  try {
+    const projectId = parseInt(req.params.id);
+    const activities = await prisma.activity.findMany({
+      where: { projectId },
+      include: { user: { select: { name: true } } },
+      orderBy: { createdAt: 'desc' },
+      take: 20
+    });
+    res.json(activities);
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: 'Internal server error' });

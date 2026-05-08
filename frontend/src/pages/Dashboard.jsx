@@ -3,6 +3,12 @@ import { Link } from 'react-router-dom';
 import api from '../api';
 import { AuthContext } from '../context/AuthContext';
 
+const getAvatarColor = (name) => {
+  const colors = ['#6366f1', '#ec4899', '#f59e0b', '#22c55e', '#ef4444', '#8b5cf6'];
+  const index = name.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+  return colors[index % colors.length];
+};
+
 const Dashboard = () => {
   const [tasks, setTasks] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -84,12 +90,17 @@ const Dashboard = () => {
             return t.status === filter;
           }).map(task => (
             <div key={task.id} className="glass-card" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <div>
-                <h3 style={{ marginBottom: '4px' }}>{task.title}</h3>
-                <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
-                  Project: {task.projectId ? <Link to={`/projects/${task.projectId}`}>{task.project?.name}</Link> : 'N/A'} • Priority: {task.priority}
-                  {task.dueDate && ` • Due: ${new Date(task.dueDate).toLocaleDateString()}`}
-                </p>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                <div className="avatar" style={{ background: getAvatarColor(task.project?.name || 'P') }}>
+                  {task.project?.name?.charAt(0).toUpperCase()}
+                </div>
+                <div>
+                  <h3 style={{ marginBottom: '4px' }}>{task.title}</h3>
+                  <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
+                    Project: {task.projectId ? <Link to={`/projects/${task.projectId}`}>{task.project?.name}</Link> : 'N/A'} • Priority: {task.priority}
+                    {task.dueDate && ` • Due: ${new Date(task.dueDate).toLocaleDateString()}`}
+                  </p>
+                </div>
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
                 {/* If assigned to the user or Admin, show dropdown, else show badge */}

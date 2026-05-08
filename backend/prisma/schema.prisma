@@ -18,6 +18,7 @@ model User {
   ownedProjects Project[]    @relation("ProjectOwner")
   assignedTasks Task[]       @relation("TaskAssignee")
   teamMembers   TeamMember[]
+  activities    Activity[]
 }
 
 model Project {
@@ -30,6 +31,7 @@ model Project {
   owner       User         @relation("ProjectOwner", fields: [ownerId], references: [id], onDelete: Cascade)
   tasks       Task[]
   members     TeamMember[]
+  activities  Activity[]
 }
 
 model TeamMember {
@@ -56,4 +58,14 @@ model Task {
   assigneeId  Int?
   assignee    User?     @relation("TaskAssignee", fields: [assigneeId], references: [id])
   project     Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
+}
+
+model Activity {
+  id        Int      @id @default(autoincrement())
+  content   String
+  createdAt DateTime @default(now())
+  projectId Int
+  userId    Int
+  project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id])
 }

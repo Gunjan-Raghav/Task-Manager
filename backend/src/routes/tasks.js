@@ -2,6 +2,7 @@ const express = require('express');
 const prisma = require('../prismaClient');
 const { verifyToken, isAdmin, isMember } = require('../middleware/auth');
 const { createTaskSchema, updateTaskSchema, validate } = require('../utils/validation');
+const logActivity = require('../activityLogger');
 
 const router = express.Router();
 
@@ -36,6 +37,7 @@ router.post('/', validate(createTaskSchema), async (req, res) => {
       }
     });
 
+    await logActivity(projectId, req.user.id, `created task "${task.title}"`);
     res.status(201).json(task);
   } catch (error) {
     console.error(error);
@@ -114,6 +116,7 @@ router.put('/:id', isMember, validate(updateTaskSchema), async (req, res) => {
         where: { id: taskId },
         data: allowedUpdates
       });
+      await logActivity(existingTask.projectId, req.user.id, `updated status of "${existingTask.title}" to ${updates.status}`);
       return res.json(task);
     }
 
@@ -125,6 +128,7 @@ router.put('/:id', isMember, validate(updateTaskSchema), async (req, res) => {
       data: updates
     });
 
+    await logActivity(existingTask.projectId, req.user.id, `updated task "${task.title}"`);
     res.json(task);
   } catch (error) {
     console.error(error);

@@ -3,6 +3,12 @@ import { Link } from 'react-router-dom';
 import api from '../api';
 import { AuthContext } from '../context/AuthContext';
 
+const getAvatarColor = (name) => {
+  const colors = ['#6366f1', '#ec4899', '#f59e0b', '#22c55e', '#ef4444', '#8b5cf6'];
+  const index = name.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+  return colors[index % colors.length];
+};
+
 const ProjectList = () => {
   const [projects, setProjects] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -61,12 +67,28 @@ const ProjectList = () => {
                 <p style={{ color: 'var(--text-secondary)', marginBottom: '16px', fontSize: '0.9rem' }}>
                   {project.description || 'No description provided.'}
                 </p>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
-                  <div style={{ display: 'flex', gap: '12px' }}>
-                    <span>👥 {project._count?.members || 0} Members</span>
-                    <span>📝 {project._count?.tasks || 0} Tasks</span>
+                
+                {/* Progress Bar */}
+                <div style={{ marginBottom: '16px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.75rem', marginBottom: '4px', color: 'var(--text-secondary)' }}>
+                    <span>Progress</span>
+                    <span>{project._count?.tasks > 0 ? Math.round((project.doneTasksCount / project._count.tasks) * 100) : 0}%</span>
                   </div>
-                  <span>Owner: {project.owner?.name}</span>
+                  <div className="progress-container">
+                    <div className="progress-bar" style={{ width: `${project._count?.tasks > 0 ? (project.doneTasksCount / project._count.tasks) * 100 : 0}%` }}></div>
+                  </div>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
+                  <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+                    <span>👥 {project._count?.members || 0}</span>
+                    <span>📝 {project._count?.tasks || 0}</span>
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <div className="avatar" style={{ background: getAvatarColor(project.owner?.name || 'A'), width: '24px', height: '24px', fontSize: '0.6rem' }}>
+                      {project.owner?.name?.charAt(0).toUpperCase()}
+                    </div>
+                    <span>{project.owner?.name}</span>
+                  </div>
                 </div>
               </Link>
             ))

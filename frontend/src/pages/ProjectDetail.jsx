@@ -3,12 +3,19 @@ import { useParams, useNavigate } from 'react-router-dom';
 import api from '../api';
 import { AuthContext } from '../context/AuthContext';
 
+const getAvatarColor = (name) => {
+  const colors = ['#6366f1', '#ec4899', '#f59e0b', '#22c55e', '#ef4444', '#8b5cf6'];
+  const index = name.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+  return colors[index % colors.length];
+};
+
 const ProjectDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { user } = useContext(AuthContext);
   const [project, setProject] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [activities, setActivities] = useState([]);
   
   // Modals
   const [showMemberModal, setShowMemberModal] = useState(false);
@@ -23,7 +30,17 @@ const ProjectDetail = () => {
 
   useEffect(() => {
     fetchProject();
+    fetchActivities();
   }, [id]);
+
+  const fetchActivities = async () => {
+    try {
+      const response = await api.get(`/projects/${id}/activities`);
+      setActivities(response.data);
+    } catch (err) {
+      console.error('Failed to fetch activities', err);
+    }
+  };
 
   const fetchProject = async () => {
     try {
@@ -78,6 +95,7 @@ const ProjectDetail = () => {
     try {
       await api.put(`/tasks/${taskId}`, { status: newStatus });
       fetchProject();
+      fetchActivities();
     } catch (err) {
       alert('Failed to update task status');
     }
@@ -117,7 +135,18 @@ const ProjectDetail = () => {
           <button className="btn btn-primary" onClick={() => setShowTaskModal(true)}>Create Task</button>
         </div>
       </div>
-      <p style={{ color: 'var(--text-secondary)', marginBottom: '30px' }}>{project.description}</p>
+      <p style={{ color: 'var(--text-secondary)', marginBottom: '20px' }}>{project.description}</p>
+
+      {/* Progress Bar */}
+      <div style={{ marginBottom: '40px', maxWidth: '400px' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem', marginBottom: '8px' }}>
+          <span>Overall Completion</span>
+          <span>{totalTasks > 0 ? Math.round((done / totalTasks) * 100) : 0}%</span>
+        </div>
+        <div className="progress-container" style={{ height: '12px' }}>
+          <div className="progress-bar" style={{ width: `${totalTasks > 0 ? (done / totalTasks) * 100 : 0}%` }}></div>
+        </div>
+      </div>
 
       {/* Per-Project Dashboard Stats */}
       <div className="dashboard-stats">
@@ -203,12 +232,29 @@ const ProjectDetail = () => {
           <h2>Team Members</h2>
           <ul style={{ marginTop: '10px', listStyleType: 'none' }}>
             {project.members.map(member => (
-              <li key={member.id} className="glass-card" style={{ marginBottom: '10px', display: 'flex', justifyContent: 'space-between' }}>
-                <span>{member.user.name}</span>
-                <span className="badge badge-completed">{member.role}</span>
+              <li key={member.id} className="glass-card" style={{ marginBottom: '10px', display: 'flex', alignItems: 'center', gap: '12px' }}>
+                <div className="avatar" style={{ background: getAvatarColor(member.user.name) }}>
+                  {member.user.name.charAt(0).toUpperCase()}
+                </div>
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontWeight: '600', fontSize: '0.9rem' }}>{member.user.name}</div>
+                  <div style={{ fontSize: '0.7rem', color: 'var(--text-secondary)' }}>{member.role.toLowerCase()}</div>
+                </div>
               </li>
             ))}
           </ul>
+
+          <h2 style={{ marginTop: '40px' }}>Recent Activity</h2>
+          <div className="glass-panel activity-list" style={{ padding: '20px' }}>
+            {activities.length === 0 ? <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>No activity yet.</p> : (
+              activities.map(act => (
+                <div key={act.id} className="activity-item">
+                  <strong>{act.user.name}</strong> {act.content}
+                  <span className="activity-time">{new Date(act.createdAt).toLocaleString()}</span>
+                </div>
+              ))
+            )}
+          </div>
         </div>
       </div>
 

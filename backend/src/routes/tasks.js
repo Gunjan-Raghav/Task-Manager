@@ -95,10 +95,13 @@ router.put('/:id', isMember, validate(updateTaskSchema), async (req, res) => {
     if (!existingTask) return res.status(404).json({ error: 'Task not found' });
 
     if (req.user.role !== 'ADMIN') {
-      // If member, maybe they can only update status if they are the assignee or part of project
-      // For simplicity, let's allow member to update status of task they are assigned to
-      if (existingTask.assigneeId !== req.user.id) {
-         return res.status(403).json({ error: 'You can only update your assigned tasks' });
+      // Allow update if member is part of the project
+      const isMember = await prisma.teamMember.findFirst({
+        where: { projectId: existingTask.projectId, userId: req.user.id }
+      });
+      
+      if (!isMember) {
+         return res.status(403).json({ error: 'You are not a member of this project' });
       }
       
       // Restrict updates to only status for members

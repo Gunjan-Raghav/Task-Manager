@@ -50,7 +50,7 @@ const AdminDashboard = () => {
     return <div style={{ textAlign: 'center', padding: '40px', color: 'red' }}>Access Denied: Admins Only</div>;
   }
 
-  const todo = tasks.filter(t => t.status === 'PENDING').length;
+  const pending = tasks.filter(t => t.status === 'PENDING').length;
   const inProgress = tasks.filter(t => t.status === 'IN_PROGRESS').length;
   const done = tasks.filter(t => t.status === 'DONE' || t.status === 'COMPLETED').length;
   const overdue = tasks.filter(t => t.status === 'OVERDUE' || (t.dueDate && new Date(t.dueDate) < new Date() && t.status !== 'DONE' && t.status !== 'COMPLETED')).length;
@@ -68,7 +68,7 @@ const AdminDashboard = () => {
           <div className="stat-label">Total Tasks</div>
         </div>
         <div className="glass-card stat-card" onClick={() => setFilter('PENDING')} style={{ cursor: 'pointer', borderTopColor: filter === 'PENDING' ? 'var(--primary-color)' : 'var(--border-color)' }}>
-          <div className="stat-value">{todo}</div>
+          <div className="stat-value">{pending}</div>
           <div className="stat-label">Pending</div>
         </div>
         <div className="glass-card stat-card" onClick={() => setFilter('IN_PROGRESS')} style={{ cursor: 'pointer', borderTopColor: filter === 'IN_PROGRESS' ? 'var(--primary-color)' : 'var(--border-color)' }}>

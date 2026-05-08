@@ -36,6 +36,5 @@ COPY --from=frontend-builder /app/frontend/dist /app/frontend/dist
 EXPOSE 4000
 
 # Start script
-# Note: Railway handles database migrations automatically if you use a release command,
-# but we can also just run migrations before starting the server.
-CMD npx prisma migrate deploy && npm start
+# Use db push to ensure tables are created on the fresh Railway database
+CMD npx prisma db push --accept-data-loss && npm start

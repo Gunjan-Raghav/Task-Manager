@@ -101,7 +101,8 @@ router.get('/:id', isMember, async (req, res) => {
       include: {
         owner: { select: { name: true, email: true } },
         members: { include: { user: { select: { name: true, email: true } } } },
-        tasks: true
+        tasks: true,
+        activities: { include: { user: { select: { name: true } } }, orderBy: { createdAt: 'desc' }, take: 10 }
       }
     });
 

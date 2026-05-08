@@ -26,6 +26,8 @@ app.use('/api/auth', authRoutes);
 app.use('/api/projects', projectRoutes);
 app.use('/api/tasks', taskRoutes);
 
+app.get('/api/alive', (req, res) => res.json({ status: 'Backend is running!' }));
+
 // Simple health check
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok' });

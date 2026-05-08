@@ -18,7 +18,8 @@ const ForgotPassword = () => {
       const response = await api.post('/auth/forgot-password', { email });
       setMessage(response.data.message);
     } catch (err) {
-      setError(err.response?.data?.error || 'Failed to process request');
+      // Show the specific error from the backend if available
+      setError(err.response?.data?.error || err.response?.data?.message || 'Server error. Please make sure the backend is running and you restarted it.');
     } finally {
       setIsLoading(false);
     }

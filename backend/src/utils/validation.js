@@ -13,6 +13,15 @@ const loginSchema = Joi.object({
   password: Joi.string().required()
 });
 
+const forgotPasswordSchema = Joi.object({
+  email: Joi.string().email().required()
+});
+
+const resetPasswordSchema = Joi.object({
+  token: Joi.string().required(),
+  newPassword: Joi.string().min(6).max(128).required()
+});
+
 // Project validations
 const createProjectSchema = Joi.object({
   name: Joi.string().min(1).max(200).required(),
@@ -68,5 +77,7 @@ module.exports = {
   addMemberSchema,
   createTaskSchema,
   updateTaskSchema,
+  forgotPasswordSchema,
+  resetPasswordSchema,
   validate
 };

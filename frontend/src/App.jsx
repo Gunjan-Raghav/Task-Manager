@@ -6,8 +6,10 @@ import Login from './pages/Login';
 import Signup from './pages/Signup';
 import ProjectList from './pages/ProjectList';
 import ProjectDetail from './pages/ProjectDetail';
-import Dashboard from './pages/Dashboard';
 import AdminDashboard from './pages/AdminDashboard';
+import Dashboard from './pages/Dashboard';
+import ForgotPassword from './pages/ForgotPassword';
+import ResetPassword from './pages/ResetPassword';
 
 const ProtectedRoute = () => {
   const { user } = useContext(AuthContext);
@@ -24,6 +26,8 @@ const AppRoutes = () => {
         <Routes>
           <Route path="/login" element={!user ? <Login /> : <Navigate to="/" replace />} />
           <Route path="/signup" element={!user ? <Signup /> : <Navigate to="/" replace />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/reset-password" element={<ResetPassword />} />
           
           <Route element={<ProtectedRoute />}>
             <Route path="/" element={<Navigate to="/dashboard" replace />} />

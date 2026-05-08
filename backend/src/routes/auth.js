@@ -1,8 +1,9 @@
 const express = require('express');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const crypto = require('crypto');
 const prisma = require('../prismaClient');
-const { signupSchema, loginSchema, validate } = require('../utils/validation');
+const { signupSchema, loginSchema, forgotPasswordSchema, resetPasswordSchema, validate } = require('../utils/validation');
 
 const router = express.Router();
 
@@ -71,6 +72,70 @@ router.post('/login', validate(loginSchema), async (req, res) => {
       token,
       user: { id: user.id, name: user.name, email: user.email, role: user.role }
     });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Forgot Password
+router.post('/forgot-password', validate(forgotPasswordSchema), async (req, res) => {
+  try {
+    const { email } = req.body;
+    const user = await prisma.user.findUnique({ where: { email } });
+
+    if (!user) {
+      return res.status(404).json({ error: 'User with this email does not exist' });
+    }
+
+    // Generate token
+    const token = crypto.randomBytes(32).toString('hex');
+    const expiry = new Date(Date.now() + 3600000); // 1 hour
+
+    await prisma.user.update({
+      where: { id: user.id },
+      data: { resetToken: token, resetTokenExpiry: expiry }
+    });
+
+    // In a real app, send email here. For now, log to terminal.
+    console.log('------------------------------------------');
+    console.log(`PASSWORD RESET REQUEST for ${email}`);
+    console.log(`Token: ${token}`);
+    console.log(`Link: http://localhost:5173/reset-password?token=${token}`);
+    console.log('------------------------------------------');
+
+    res.json({ message: 'Password reset link generated. Check server logs (simulating email).' });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Reset Password
+router.post('/reset-password', validate(resetPasswordSchema), async (req, res) => {
+  try {
+    const { token, newPassword } = req.body;
+
+    const user = await prisma.user.findUnique({
+      where: { resetToken: token }
+    });
+
+    if (!user || user.resetTokenExpiry < new Date()) {
+      return res.status(400).json({ error: 'Invalid or expired reset token' });
+    }
+
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+    await prisma.user.update({
+      where: { id: user.id },
+      data: {
+        password: hashedPassword,
+        resetToken: null,
+        resetTokenExpiry: null
+      }
+    });
+
+    res.json({ message: 'Password has been reset successfully. You can now login.' });
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: 'Internal server error' });

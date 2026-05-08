@@ -63,8 +63,12 @@ const Login = () => {
           </button>
         </form>
         
+        <div style={{ marginTop: '16px', textAlign: 'center' }}>
+          <Link to="/forgot-password" style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>Forgot Password?</Link>
+        </div>
+        
         <div style={{ marginTop: '24px', textAlign: 'center', color: 'var(--text-secondary)' }}>
-          Don't have an account? <Link to="/signup">Sign up</Link>
+          Don't have an account? <Link to="/signup">Sign Up</Link>
         </div>
       </div>
     </div>
